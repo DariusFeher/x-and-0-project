@@ -133,7 +133,7 @@ function checkWin() {
 				equal_secondary_diagonal = false;
 			}
 		}
-		if (equal_main_diagonal == true || equal_main_diagonal == true) {
+		if (equal_main_diagonal == true || equal_secondary_diagonal == true) {
 			win = true;
 		}
 	}
