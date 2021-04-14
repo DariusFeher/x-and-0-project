@@ -2,10 +2,21 @@
 newGame(false);
 this.start_again = false;
 function newGame(start_again_value) {
+	var winMessageHeader = document.getElementById('winMessageHeader');
+	if (winMessageHeader) {
+		var parentHeader = winMessageHeader.parentElement;
+		parentHeader.removeChild(winMessageHeader);
+	}
 	this.start_again = start_again_value;
 	this.no_filled_cells = 0;
 	this.clear = new Array(10);
 	this.symbols = new Array(3);
+	this.x_symbols = new Array(8);
+	this.o_symbols = new Array(8);
+	for (var i = 0; i < 8; i++) {
+		this.x_symbols[i] = 0;
+		this.o_symbols[i] = 0;
+	}
 	for (var i = 0; i < 3; i++) {
 		this.symbols[i] = new Array(3);
 		if (this.start_again == true) {
@@ -43,14 +54,38 @@ async function playerMove(box) {
 			this.no_filled_cells++;
 			this.player = 0;
 			console.log(this.symbols);
-			if (checkWin() == true) {
+			var win = false;
+			var row = Math.floor(item_no / 3);
+			var col = item_no % 3;
+			this.x_symbols[row]++;
+			if (this.x_symbols[row] == 3) {
+				win = true;
+			}
+			this.x_symbols[3 + col]++;
+			if (this.x_symbols[3 + col] == 3) {
+				win = true;
+			}
+			if (row == col) {
+				this.x_symbols[6]++;
+				if (this.x_symbols[6] == 3) {
+					win = true;
+				}
+			}
+			if (row + col == 2) {
+				this.x_symbols[7]++;
+				if (this.x_symbols[7] == 3) {
+					win = true;
+				}
+			}
+			console.log(Math.floor(item_no / 3), item_no % 3);
+			if (win == true) {
 				await new Promise(r => setTimeout(r, 100));
-				alert("Player X won this game!");
-				newGame(true);
+				displayResult("Player X won this game!");
+				disableCells();
 			} else if (this.no_filled_cells == 9) {
 				await new Promise(r => setTimeout(r, 100));
-				newGame(true);
-				alert("Game over, no winner!");
+				displayResult("It's a draw!");
+				disableCells();
 			} else {
 				pcMove();
 			}
@@ -71,38 +106,57 @@ async function pcMove() {
 		document.getElementById(id).innerHTML = this.playerSymbol[this.player];
 		this.no_filled_cells++;
 		this.player = 1;
-		if (checkWin() == true) {
+		var win = false;
+		var row = Math.floor(chosen_cell / 3);
+		var col = chosen_cell % 3;
+		this.o_symbols[row]++;
+		if (this.o_symbols[row] == 3) {
+			win = true;
+		}
+		this.o_symbols[3 + col]++;
+		if (this.o_symbols[3 + col] == 3) {
+			win = true;
+		}
+		if (row == col) {
+			this.o_symbols[6]++;
+			if (this.o_symbols[6] == 3) {
+				win = true;
+			}
+		}
+		if (row + col == 2) {
+			this.o_symbols[7]++;
+			if (this.o_symbols[7] == 3) {
+				win = true;
+			}
+		}
+		if (win == true) {
 			await new Promise(r => setTimeout(r, 100));
-			alert("Player O won this game!");
-			newGame(true);
+			displayResult("Player O won this game!");
+			disableCells();
 		} else if (this.no_filled_cells == 9) {
 			await new Promise(r => setTimeout(r, 100));
-			newGame(true);
-			alert("Game over, no winner!");
+			displayResult("It's a draw!");
+			disableCells();
 		}
 	}
 }
 
-function checkWin() {
-	var win = false;
-	if (this.no_filled_cells >= 3) {
-		if ((this.symbols[0][0] == "X" || this.symbols[0][0] == "O") && this.symbols[0][0] == this.symbols[0][1] && this.symbols[0][1] == this.symbols[0][2]) {
-			win = true;
-		} else if ((this.symbols[1][0] == "X" || this.symbols[1][0] == "O") && this.symbols[1][0] == this.symbols[1][1] && this.symbols[1][1] == this.symbols[1][2]) {
-			win = true;
-		} else if ((this.symbols[2][0] == "X" || this.symbols[2][0] == "O") && this.symbols[2][0] == this.symbols[2][1] && this.symbols[2][1] == this.symbols[2][2]) {
-			win = true;
-		} else if ((this.symbols[0][0] == "X" || this.symbols[0][0] == "O") && this.symbols[0][0] == this.symbols[1][0] && this.symbols[1][0] == this.symbols[2][0]) {
-			win = true;
-		} else if ((this.symbols[0][1] == "X" || this.symbols[0][1] == "O") && this.symbols[0][1] == this.symbols[1][1] && this.symbols[1][1] == this.symbols[2][1]) {
-			win = true;
-		} else if ((this.symbols[0][2] == "X" || this.symbols[0][2] == "O") && this.symbols[0][2] == this.symbols[1][2] && this.symbols[1][2] == this.symbols[2][2]) {
-			win = true;
-		} else if ((this.symbols[0][2] == "X" || this.symbols[0][2] == "O") && this.symbols[0][2] == this.symbols[1][1] && this.symbols[1][1] == this.symbols[2][0]) {
-			win = true;
-		} else if ((this.symbols[0][0] == "X" || this.symbols[0][0] == "O") && this.symbols[0][0] == this.symbols[1][1] && this.symbols[1][1] == this.symbols[2][2]) {
-			win = true;
+function displayResult(result) {
+	var winMessageDiv = document.getElementById("winMessage");
+	var winMessageHeader = document.createElement("h1");
+	winMessageHeader.id = "winMessageHeader"
+	winMessageHeader.innerHTML = result;
+	winMessageDiv.appendChild(winMessageHeader);
+}
+
+function disableCells() {
+	for (var i = 0; i < 3; i++) {
+		for (var j = 0; j < 3; j++) {
+			var item_no = i * 3 + j;
+			id = "item"
+			id = "item" + item_no.toString();
+			console.log(id);
+			document.getElementById(id).disabled = 'True';
 		}
 	}
-	return win;
 }
