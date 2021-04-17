@@ -1,144 +1,122 @@
 
-newGame(false);
-this.start_again = false;
-function newGame(start_again_value) {
+newGame();
+
+function newGame() {
+	
 	var winMessageHeader = document.getElementById('winMessageHeader');
 	if (winMessageHeader) {
 		var parentHeader = winMessageHeader.parentElement;
 		parentHeader.removeChild(winMessageHeader);
 	}
-	this.start_again = start_again_value;
-	this.no_filled_cells = 0;
-	this.clear = new Array(10);
-	this.symbols = new Array(3);
-	this.x_symbols = new Array(8);
-	this.o_symbols = new Array(8);
+
+	var board = document.getElementById('board');
+	if (board) {
+		var parentBoard = board.parentElement;
+		parentBoard.removeChild(board);
+	}
+	no_filled_cells = [0];
+	clear_cell = new Array(9);
+
+	x_symbols = new Array(8);
+	o_symbols = new Array(8);
+
 	for (var i = 0; i < 8; i++) {
-		this.x_symbols[i] = 0;
-		this.o_symbols[i] = 0;
+		x_symbols[i] = 0;
+		o_symbols[i] = 0;
 	}
-	for (var i = 0; i < 3; i++) {
-		this.symbols[i] = new Array(3);
-		if (this.start_again == true) {
-			for (var j = 0; j < 3; j++) {
-				this.symbols[i][j] = "";
-				var id = "item";
-				var item_no = i * 3 + j;
-				id = id.concat(item_no.toString());
-				document.getElementById(id).innerHTML = '';
-			}
-		}
+
+	for (var i = 0; i < 9; i++) {
+		clear_cell[i] = true;
 	}
-	for (var i = 0; i < 10; i++) {
-		this.clear[i] = true;
-	}
-	this.player = 1;
-	this.playerSymbol = ['O' , 'X'];
+
+	createBoard(no_filled_cells, clear_cell, x_symbols, o_symbols);
 }
 
-
-function addSymbol(box) {
-	playerMove(box);
+function createBoard(no_filled_cells, clear_cell, x_symbols, o_symbols) {
+	var board_container = document.getElementById("board_container");
+	var board = document.createElement('div');
+	board.id = "board";
+	board.className = "grid-container";
+	board_container.appendChild(board);
+	for (var item_no = 0; item_no < 9; item_no++) {
+		var new_cell = document.createElement('div');
+		new_cell.id = "item" + item_no.toString();
+		new_cell.className = "item" + item_no.toString();
+		new_cell.onclick = function() {playerMove(this, no_filled_cells, clear_cell, x_symbols, o_symbols);};
+		board.appendChild(new_cell);
+	}
 }
 
-async function playerMove(box) {
-	console.log(this.symbols);
-	if (this.no_filled_cells % 2 == 0) {
-		var item_no = parseInt(box.className.charAt(box.className.length - 1));
-		if (this.clear[item_no] == false) {
-			alert("Please choose another square!");
-		} else {
-			this.clear[item_no] = false;
-			this.symbols[Math.floor(item_no / 3)][item_no % 3] = this.playerSymbol[this.player];
-			document.getElementById(box.id).innerHTML = this.playerSymbol[this.player];
-			this.no_filled_cells++;
-			this.player = 0;
-			console.log(this.symbols);
-			var win = false;
-			var row = Math.floor(item_no / 3);
-			var col = item_no % 3;
-			this.x_symbols[row]++;
-			if (this.x_symbols[row] == 3) {
-				win = true;
-			}
-			this.x_symbols[3 + col]++;
-			if (this.x_symbols[3 + col] == 3) {
-				win = true;
-			}
-			if (row == col) {
-				this.x_symbols[6]++;
-				if (this.x_symbols[6] == 3) {
-					win = true;
-				}
-			}
-			if (row + col == 2) {
-				this.x_symbols[7]++;
-				if (this.x_symbols[7] == 3) {
-					win = true;
-				}
-			}
-			console.log(Math.floor(item_no / 3), item_no % 3);
-			if (win == true) {
-				await new Promise(r => setTimeout(r, 100));
-				displayResult("Player X won this game!");
-				disableCells();
-			} else if (this.no_filled_cells == 9) {
-				await new Promise(r => setTimeout(r, 100));
-				displayResult("It's a draw!");
-				disableCells();
-			} else {
-				pcMove();
-			}
+function getId(box) { 
+	return parseInt(box.className.charAt(box.className.length - 1));
+}
+
+function playerMove(box, no_filled_cells, clear_cell, x_symbols, o_symbols) {
+	var item_no = getId(box);
+	if (clear_cell[item_no] == false) {
+		alert("Please choose another square!");
+	} else {
+		fillCell(box.id, "X", item_no, no_filled_cells, clear_cell);
+		var win = checkWin(Math.floor(item_no / 3), item_no % 3, x_symbols);
+		if (handleWin(win, "X", no_filled_cells) == false) {
+			pcMove(no_filled_cells, clear_cell, o_symbols);
 		}
 	}
 }
 
-async function pcMove() {
-	if (this.no_filled_cells < 9) {
+function pcMove(no_filled_cells, clear_cell, o_symbols) {
+	if (no_filled_cells < 9) {
 		var chosen_cell = Math.floor(Math.random() * 9);
-		while (this.clear[parseInt(chosen_cell)] == false) {
+		while (clear_cell[parseInt(chosen_cell)] == false) {
 			chosen_cell = Math.floor(Math.random() * 9);
 		}
-		this.clear[chosen_cell] = false;
-		this.symbols[Math.floor(chosen_cell / 3)][chosen_cell % 3] = this.playerSymbol[this.player];
-		var id = "item";
-		id = id.concat(chosen_cell.toString());
-		document.getElementById(id).innerHTML = this.playerSymbol[this.player];
-		this.no_filled_cells++;
-		this.player = 1;
-		var win = false;
-		var row = Math.floor(chosen_cell / 3);
-		var col = chosen_cell % 3;
-		this.o_symbols[row]++;
-		if (this.o_symbols[row] == 3) {
-			win = true;
-		}
-		this.o_symbols[3 + col]++;
-		if (this.o_symbols[3 + col] == 3) {
-			win = true;
-		}
-		if (row == col) {
-			this.o_symbols[6]++;
-			if (this.o_symbols[6] == 3) {
-				win = true;
-			}
-		}
-		if (row + col == 2) {
-			this.o_symbols[7]++;
-			if (this.o_symbols[7] == 3) {
-				win = true;
-			}
-		}
-		if (win == true) {
-			await new Promise(r => setTimeout(r, 100));
-			displayResult("Player O won this game!");
-			disableCells();
-		} else if (this.no_filled_cells == 9) {
-			await new Promise(r => setTimeout(r, 100));
-			displayResult("It's a draw!");
-			disableCells();
+		fillCell("item" + chosen_cell.toString(), "O", chosen_cell, no_filled_cells, clear_cell);
+		var win = checkWin(Math.floor(chosen_cell / 3), chosen_cell % 3, o_symbols);
+		handleWin(win, "O", no_filled_cells);
+	}
+}
+
+function handleWin(win, player, no_filled_cells) {
+	if (win == true) {
+		displayResult("Player " + player + " won this game!");
+		disableCells();
+		return true;
+	} else if (no_filled_cells == 9) {
+		displayResult("It's a draw!");
+		disableCells();
+		return true;
+	}
+	return false;
+}
+
+function fillCell(id, symbol, cell_no, no_filled_cells, clear_cell) {
+	clear_cell[cell_no] = false;
+	document.getElementById(id).innerHTML = symbol;
+	no_filled_cells[0]++;
+}
+
+function checkWin(row, col, symbols_array) {
+	symbols_array[row]++;
+	if (symbols_array[row] == 3) {
+		return true;
+	}
+	symbols_array[3 + col]++;
+	if (symbols_array[3 + col] == 3) {
+		return true;
+	}
+	if (row == col) {
+		symbols_array[6]++;
+		if (symbols_array[6] == 3) {
+			return true;
 		}
 	}
+	if (row + col == 2) {
+		symbols_array[7]++;
+		if (symbols_array[7] == 3) {
+			return true;
+		}
+	}
+	return false;
 }
 
 function displayResult(result) {
@@ -152,11 +130,8 @@ function displayResult(result) {
 function disableCells() {
 	for (var i = 0; i < 3; i++) {
 		for (var j = 0; j < 3; j++) {
-			var item_no = i * 3 + j;
-			id = "item"
-			id = "item" + item_no.toString();
-			console.log(id);
-			document.getElementById(id).disabled = 'True';
+			id = "item" + (i * 3 + j).toString();
+			document.getElementById(id).onclick = null;
 		}
 	}
 }
