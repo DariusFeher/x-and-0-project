@@ -1,8 +1,11 @@
 
+$(document).ready(function(){
+
+document.getElementById("newGameButton").onclick = function () {newGame()};
+
 newGame();
 
 function newGame() {
-	
 	var winMessageHeader = document.getElementById('winMessageHeader');
 	if (winMessageHeader) {
 		var parentHeader = winMessageHeader.parentElement;
@@ -32,6 +35,13 @@ function newGame() {
 	createBoard(no_filled_cells, clear_cell, x_symbols, o_symbols);
 }
 
+function createAlert(alertType, alertMessage) {
+	$('#alert_placeholder').append('<div id="alertdiv" class="alert ' +  alertType + '" style="width: 60%;"><a class="close" data-dismiss="alert">×</a><span>'+alertMessage+'</span></div>')
+    setTimeout(function() { // this will automatically close the alert and remove it if the user doesn't close it in 5 secs
+	    $("#alertdiv").remove();
+	}, 5000);
+}
+
 function createBoard(no_filled_cells, clear_cell, x_symbols, o_symbols) {
 	var board_container = document.getElementById("board_container");
 	var board = document.createElement('div');
@@ -54,7 +64,7 @@ function getId(box) {
 function playerMove(box, no_filled_cells, clear_cell, x_symbols, o_symbols) {
 	var item_no = getId(box);
 	if (clear_cell[item_no] == false) {
-		alert("Please choose another square!");
+		createAlert("alert-warning", "Please choose another square!");
 	} else {
 		fillCell(box.id, "X", item_no, no_filled_cells, clear_cell);
 		var win = checkWin(Math.floor(item_no / 3), item_no % 3, x_symbols);
@@ -120,11 +130,7 @@ function checkWin(row, col, symbols_array) {
 }
 
 function displayResult(result) {
-	var winMessageDiv = document.getElementById("winMessage");
-	var winMessageHeader = document.createElement("h1");
-	winMessageHeader.id = "winMessageHeader"
-	winMessageHeader.innerHTML = result;
-	winMessageDiv.appendChild(winMessageHeader);
+	createAlert('alert-success', result);
 }
 
 function disableCells() {
@@ -135,3 +141,4 @@ function disableCells() {
 		}
 	}
 }
+})
